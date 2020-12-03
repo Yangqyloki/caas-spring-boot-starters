@@ -1,0 +1,21 @@
+release.properties
+buildNumber.properties
+.mvn/timing.properties
+build/
+.gradle/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+bin

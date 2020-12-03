@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/oauth/token"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+      "token_type": "bearer",
+      "expires_in": 10000,
+      "scope": "",
+      "jti": "e2abbae8414c4a2d8fda3ed898858088"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

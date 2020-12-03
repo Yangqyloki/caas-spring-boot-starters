@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.hybris.caas.error.config.ErrorConfig,\
+com.hybris.caas.error.config.ErrorSecurityConfig,\
+com.hybris.caas.error.config.JpaErrorConfig,\
+com.hybris.caas.error.config.EclipseLinkErrorConfig

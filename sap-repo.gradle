@@ -1,0 +1,77 @@
+// externalize these variables to be available in the gradle build who uses this file
+ext.upscaleReleaseRepoUrl = 'https://common.repositories.sap.ondemand.com/artifactory/upscale-releases'
+ext.upscaleSnapshotRepoUrl = 'https://common.repositories.sap.ondemand.com/artifactory/upscale-snapshots'
+ext.sapNexusReleaseRepoUrl = 'https://nexus.wdf.sap.corp:8443/nexus/content/repositories/build.releases'
+ext.sapNexusSnapshotRepoUrl = 'https://nexus.wdf.sap.corp:8443/nexus/content/repositories/build.snapshots'
+
+repositories.ext.upscaleReleaseRepo = {
+    repositories.maven {
+        url upscaleReleaseRepoUrl
+        credentials {
+            credentials {
+                username "$artifactory_username"
+                password "$artifactory_password"
+            }
+        }
+    }
+}
+
+repositories.ext.sapNexusReleaseRepo = {
+    repositories.maven {
+        url sapNexusReleaseRepoUrl
+    }
+}
+
+repositories.ext.sapNexusSnapshotRepo = {
+    repositories.maven {
+        url sapNexusSnapshotRepoUrl
+    }
+}
+
+repositories.ext.upscaleSnapshotRepo = {
+    repositories.maven {
+        url upscaleSnapshotRepoUrl
+        credentials {
+            credentials {
+                username "$artifactory_username"
+                password "$artifactory_password"
+            }
+        }
+    }
+}
+
+project.buildscript.repositories.ext.upscaleReleaseRepo = {
+    project.buildscript.repositories.maven {
+        url upscaleReleaseRepoUrl
+        credentials {
+            credentials {
+                username "$artifactory_username"
+                password "$artifactory_password"
+            }
+        }
+    }
+}
+
+project.buildscript.repositories.ext.sapNexusReleaseRepo = {
+    project.buildscript.repositories.maven {
+        url sapNexusReleaseRepoUrl
+    }
+}
+
+project.buildscript.repositories.ext.upscaleSnapshotRepo = {
+    project.buildscript.repositories.maven {
+        url upscaleSnapshotRepoUrl
+        credentials {
+            credentials {
+                username "$artifactory_username"
+                password "$artifactory_password"
+            }
+        }
+    }
+}
+
+project.buildscript.repositories.ext.sapNexusSnapshotRepo = {
+    project.buildscript.repositories.maven {
+        url sapNexusSnapshotRepoUrl
+    }
+}

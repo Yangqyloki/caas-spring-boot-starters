@@ -1,0 +1,2 @@
+rootProject.name = 'caas-spring-boot-starters'
+include 'caas-spring-boot-starter-multitenant', 'caas-spring-boot-starter-error-handling', 'caas-spring-boot-starter-security', 'caas-spring-boot-starter-logging', 'caas-spring-boot-starter-swagger', 'caas-spring-boot-starter-web', 'caas-spring-boot-starter-test', 'caas-spring-boot-starter-kafka', 'caas-spring-boot-starter-data', 'caas-spring-boot-starter-dependencies', 'caas-spring-boot-starter-client'

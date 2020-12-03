@@ -1,0 +1,64 @@
+spring:
+  jackson.default-property-inclusion: non_null
+  resources.add-mappings: false
+  datasource:
+    url: jdbc:postgresql://localhost/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    client-id: test
+    producer:
+      client-id: producer-test
+      transaction-id-prefix: tx-test-${random.uuid}-
+    consumer:
+      client-id: consumer-test
+      group-id: kafka-group-test
+      auto-offset-reset: earliest
+      max-poll-records: 50
+      properties:
+        isolation.level: read_committed
+    # override caas-kafka defaults with spring-kafka defaults
+    jaas.enabled: false
+    bootstrap-servers: localhost:9092
+    security.protocol: PLAINTEXT
+    properties:
+      sasl.mechanism: GSSAPI
+    ssl:
+      trust-store-location:
+      trust-store-password:
+server:
+  compression.enabled: true
+  max-http-header-size: 16KB
+cloud.security:
+  xsappname: caas2-xsuaa
+  tenant-regex: (!t\d+)?.
+  dev-ops-scope: y.c2_ops
+caas.kafka:
+  producer:
+    first:
+      partition-count: 1
+      replication-factor: 1
+      destination: my-topic
+  consumer:
+    first:
+      source: my-topic
+      partitionCount: 1
+  vcap-service-name: caas-test
+  environment-name: test
+  listener.retry.enabled: false
+#caas.security.web.enabled: false
+sap:
+#  audit.service.enabled: false
+  security.tokens:
+    developer:
+      tenant: sap_${now}
+      scopes:
+        - develop
+        - test
+    test-user:
+      accountId: Alice Test ${uuid}
+      email: some-test-users-email@test.com
+      tenant: test
+      scopes:
+        - read_only

@@ -1,0 +1,272 @@
+
+buildscript {
+    apply from: "${rootDir}/sap-repo.gradle"
+
+    ext {
+        springBootVersion = '2.3.4.RELEASE'
+        jgitflowVersion = '0.6.0'
+        sonarqubeVersion = '3.0'
+    }
+
+    repositories {
+        sapNexusSnapshotRepo()
+    }
+
+    dependencies {
+        classpath "io.github.robwin:jgitflow-gradle-plugin:${jgitflowVersion}"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:${sonarqubeVersion}"
+    }
+}
+
+apply plugin: 'org.sonarqube'
+apply plugin: 'io.github.robwin.jgitflow'
+apply plugin: 'io.spring.dependency-management'
+
+allprojects {
+    group = 'com.sap.caas'
+
+    apply from: "${rootDir}/sap-repo.gradle"
+
+    repositories {
+        sapNexusSnapshotRepo()
+        upscaleReleaseRepo()
+        upscaleSnapshotRepo()
+    }
+
+    sonarqube {
+        properties {
+            property 'sonar.projectKey', project.name
+            property 'sonar.pullrequest.github.repository', "CaaS20/${project.name}"
+        }
+    }
+}
+
+subprojects {
+
+    if (project.name != 'caas-spring-boot-starter-dependencies')
+    {
+        apply plugin: 'java-library'
+        apply plugin: 'maven-publish'
+        apply plugin: 'jacoco'
+        apply plugin: 'org.springframework.boot'
+        apply plugin: 'io.spring.dependency-management'
+
+        sourceCompatibility = 11
+        targetCompatibility = 11
+
+        ext {
+            // compile dependencies versions
+            pbBomVersion = '0.0.31'
+
+            sapCloudSecurityVersion = '2.7.5'
+            loggingVersion = '3.1.0'
+            auditlogVersion = '2.1.7'
+            xsEnvVersion = '1.18.2'
+            springCloudContractVersion = '2.2.4.RELEASE'
+
+            owaspJavaHtmlSanitizerVersion = '20200713.1'
+            encoderVersion = '1.2.2'
+            jsoupVersion = '1.13.1'
+            zJsonPatchVersion = '0.4.11'
+            commonsCompressVersion = '1.20'
+        }
+
+        // override springboot bom dependency, useful when one version is used in multiple dependencies, for example: ext['groovy.version'] = '2.5.3'
+        // https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-dependencies/pom.xml
+        // https://github.com/spring-cloud/spring-cloud-release/blob/master/spring-cloud-dependencies/pom.xml
+
+        dependencyManagement {
+            imports {
+                mavenBom "com.sap.upscale:upscale-pb-dependencies-bom:${pbBomVersion}"
+            }
+        }
+
+        dependencies {
+            compileOnly 'org.springframework.boot:spring-boot-configuration-processor'
+            annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+        }
+
+        // disable spring boot jar (fat/uber jar)
+        bootJar {
+            enabled = false
+        }
+
+        // enable single jar file, disable by default when spring boot plugin used
+        jar {
+            enabled = true
+        }
+
+        configurations {
+            testImplementation.extendsFrom compileOnly
+        }
+
+        test {
+            useJUnitPlatform()
+
+            // sleuth decorated reactor classes fail unit tests because "Spring Context [...] is not yet refreshed." // java assert fails
+            // reference: spring-cloud-sleuth-core-2.2.3.RELEASE/org.springframework.cloud.sleuth.instrument.reactor.ReactorSleuth.scopePassingSpanOperator
+            // similar to the issue reported in here https://github.com/spring-cloud/spring-cloud-sleuth/issues/1583
+            // once the issue is fixed, remove all these comment lines with the line below
+            enableAssertions = false
+        }
+
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << '-parameters' << '-Xlint:unchecked' << '-Xlint:deprecation'
+        }
+
+        task sourcesJar(type: Jar, dependsOn: classes) {
+            archiveClassifier = 'sources'
+            from sourceSets.main.allSource
+        }
+
+        task javadocJar(type: Jar, dependsOn: javadoc) {
+            archiveClassifier = 'javadoc'
+            from javadoc.destinationDir
+        }
+
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+
+        artifacts {
+            archives sourcesJar
+            archives javadocJar
+        }
+
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+                    from components.java
+                    artifact sourcesJar
+                    artifact javadocJar
+                    versionMapping {
+                        usage('java-runtime') {
+                            fromResolutionResult()
+                        }
+                    }
+                }
+            }
+            repositories {
+                maven {
+                    url = version.endsWith("SNAPSHOT") ? "https://artifactory-prod.sapcdn.io/artifactory/upscale-snapshots" : "https://artifactory-prod.sapcdn.io/artifactory/upscale-releases"
+                    credentials {
+                        username = artifactory_username
+                        password = artifactory_password
+                    }
+                }
+            }
+        }
+
+        jacocoTestReport {
+            reports {
+                xml.enabled true // required by SonarQube
+            }
+        }
+
+        task allDeps(type: DependencyReportTask, description: 'Display dependencies for all modules') {}
+
+        if (project.name != 'caas-spring-boot-starter-test') {
+            task blackDuckScan() {
+                doLast {
+
+                    try {
+
+                        def path = rootDir.getPath() + '/detect.sh'
+                        def f = new File(path)
+                        if (!f.exists()) {
+                            new URL('https://detect.synopsys.com/detect.sh').withInputStream { i -> f.withOutputStream { it << i } }
+                            f.setExecutable(true)
+                        }
+                        def blackDuckToken = project.hasProperty("blackDuckToken") ?
+                                project.getProperties().get("blackDuckToken").toString() :
+                                System.getenv("BLACKDUCK_TOKEN")
+
+                        project.exec { execSpec ->
+                            execSpec.environment("BLACKDUCK_SKIP_PHONE_HOME", true);
+                            execSpec.commandLine(path,
+                                    "--detect.project.name='SHC - COMMERCE AS A SERVICE 2.0'",
+                                    "--detect.project.version.distribution='SaaS'",
+                                    "--detect.project.version.name=" + project.name,
+                                    "--blackduck.url=https://sap.blackducksoftware.com",
+                                    "--blackduck.api.token=" + blackDuckToken,
+                                    "--detect.source.path=" + project.rootDir,
+                                    "--detect.output.path=" + project.rootDir + "/blackduck/output",
+                                    "--detect.tools.output.path=" + project.rootDir + "/blackduck/output/tools",
+                                    "--detect.required.detector.types=GRADLE",
+                                    "--detect.excluded.detector.types=GIT",
+                                    "--logging.level.com.synopsys.integration=DEBUG"
+                            )
+                        }
+                    } catch (e) {
+                        println "Could not run black duck" + e.getMessage()
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+project(':caas-spring-boot-starter-multitenant') {
+    dependencies {
+        compileOnly project(':caas-spring-boot-starter-error-handling')
+    }
+}
+
+project(':caas-spring-boot-starter-web') {
+    dependencies {
+        compileOnly project(':caas-spring-boot-starter-error-handling')
+        compileOnly project(':caas-spring-boot-starter-data')
+        compileOnly project(':caas-spring-boot-starter-security')
+    }
+}
+
+project(':caas-spring-boot-starter-kafka') {
+    dependencies {
+        compileOnly project(':caas-spring-boot-starter-error-handling')
+    }
+}
+
+project(':caas-spring-boot-starter-security') {
+    dependencies {
+        compileOnly project(':caas-spring-boot-starter-error-handling')
+    }
+}
+
+project(':caas-spring-boot-starter-client') {
+    dependencies {
+        compileOnly project(':caas-spring-boot-starter-error-handling')
+    }
+}
+
+project(':caas-spring-boot-starter-logging') {
+    dependencies {
+        compileOnly project(':caas-spring-boot-starter-error-handling')
+        testImplementation project(':caas-spring-boot-starter-multitenant')
+        testImplementation project(':caas-spring-boot-starter-security')
+        testImplementation project(':caas-spring-boot-starter-test')
+        testImplementation project(':caas-spring-boot-starter-kafka')
+    }
+}
+
+project(':caas-spring-boot-starter-data') {
+    dependencies {
+        compileOnly project(':caas-spring-boot-starter-error-handling')
+        compileOnly project(':caas-spring-boot-starter-logging')
+    }
+}
+
+project(':caas-spring-boot-starter-test') {
+    dependencies {
+        compileOnly project(':caas-spring-boot-starter-security')
+        testImplementation project(':caas-spring-boot-starter-error-handling')
+        testImplementation project(':caas-spring-boot-starter-logging')
+        testImplementation project(':caas-spring-boot-starter-web')
+        testImplementation project(':caas-spring-boot-starter-data')
+        testImplementation project(':caas-spring-boot-starter-swagger')
+        testImplementation project(':caas-spring-boot-starter-multitenant')
+        testImplementation project(':caas-spring-boot-starter-test')
+        testImplementation project(':caas-spring-boot-starter-kafka')
+    }
+}

@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.hybris.caas.log.config.LoggingConfig,\
+com.hybris.caas.log.config.EclipseLinkLoggingConfig,\
+com.hybris.caas.log.config.AuditLogConfig

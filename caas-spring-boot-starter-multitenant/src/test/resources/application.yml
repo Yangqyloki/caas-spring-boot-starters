@@ -1,0 +1,12 @@
+#
+# Sample tenant path properties
+#
+#tenant:
+#  paths[0]:
+#    path-pattern: "/.well-known/**/*"
+#    forwarded-host-regex: "^(.*)-(.*)-approuter-caas2-sap-test\.cfapps\.us10\.hana\.ondemand\.com$"
+#    capturing-group: 2
+#  paths[1]:
+#    pattern: "/foo/**/*"
+#    forwarded-host-regex: "^(.*)-approuter-caas2-sap-test\.cfapps\.us10\.hana\.ondemand\.com$"
+#    capturing-group: 1

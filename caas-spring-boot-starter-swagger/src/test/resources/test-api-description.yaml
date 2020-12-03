@@ -1,0 +1,34 @@
+openapi: 3.0.0
+info:
+  title: Test Module API Example
+  description: >
+    This is a test module API @service.version@ example.
+  version: '@service.version@'
+  contact:
+    name: team Polar Bears
+servers:
+  - url: http://somewhere.com/my-service
+    description: Service URL
+  - url: http://somewhereelse.com/my-service
+    description: Second Service URL
+security:
+  - bearerAuth: []
+tags:
+  - name: Categories
+    description: Method available for the category resource.
+paths:
+  /categories:
+    get:
+      tags:
+        - Categories
+      summary: Retrieve a list of categories.
+      description: Retrieves a list of categories. The categories are sorted by name in ascending order. By default only categories active and published are returned. The expand query parameter is available to display two additional fields. The fields are the category parent ID (parentIds) and ancestor paths (paths).
+      responses:
+        200:
+          description: List of categories information.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: TOKEN

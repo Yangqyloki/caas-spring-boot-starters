@@ -1,0 +1,28 @@
+apply plugin: 'java-platform'
+apply plugin: 'maven-publish'
+
+dependencies {
+	constraints {
+		rootProject.subprojects.each {
+			api project(':' + it.name)
+		}
+	}
+}
+
+publishing {
+	publications {
+		caasSpringBootStarterDependencies(MavenPublication) {
+			from components.javaPlatform
+		}
+	}
+
+	repositories {
+		maven {
+			url = version.endsWith("SNAPSHOT") ? "https://artifactory-prod.sapcdn.io/artifactory/upscale-snapshots" : "https://artifactory-prod.sapcdn.io/artifactory/upscale-releases"
+			credentials {
+				username = artifactory_username
+				password = artifactory_password
+			}
+		}
+	}
+}

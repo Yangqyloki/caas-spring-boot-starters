@@ -1,0 +1,292 @@
+spring:
+  profiles: kafka-starter-integration-test
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
+caas.kafka:
+  vcap-service-name: test-kafka
+  environment-name: test
+  producer:
+    first:
+      partition-count: 1
+      replication-factor: 1
+      destination: my-topic
+
+---
+spring:
+  profiles: cloud
+vcap.services.test-kafka.credentials:
+  urls:
+    token: http://localhost:8080/oauth/token
+  username: sap
+  password: sap
+
+---
+spring:
+  profiles: tx
+  kafka.producer.transaction-id-prefix: tx
+---
+# to be used along one of the kafka-retry-* profiles, this is the common kafka config
+spring:
+  profiles: base-config-kafka-retry
+  datasource:
+    url: jdbc:postgresql://localhost/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: localhost:9092
+    client-id: client-for-${caas.kafka.test}
+    producer:
+      client-id: producer-client-for-${caas.kafka.test}
+      transaction-id-prefix: ${caas.kafka.test}-tx-
+    consumer:
+      client-id: consumer-client-for-${caas.kafka.test}
+      group-id: consumer-group-for-${caas.kafka.test}
+      auto-offset-reset: earliest
+      max-poll-records: 50
+      properties:
+        isolation.level: read_committed
+    # override kafka.properties default with spring-kafka defaults
+    jaas.enabled: false
+    security.protocol: PLAINTEXT
+    properties:
+      sasl.mechanism: GSSAPI
+    ssl:
+      trust-store-location:
+      trust-store-password:
+caas.kafka:
+  message-delay-ms: 10
+  vcap-service-name: dev-kafka
+  environment-name: dev
+  create-consumer-topics: true
+  listener:
+    retry.enabled: false
+    retryable-consumer:
+      max-attempts: 2
+      transaction-id-prefix: ${caas.kafka.test}-tx-
+---
+spring:
+  profiles: kafka-retry-short-long-dlt
+caas.kafka:
+  test: tdr-short-long-dlt-${caas.random.uuid}
+  retryable-consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic
+      short-delay-retry:
+        partition-count: 1
+        replication-factor: 1
+        message-delay-ms: 10
+      long-delay-retry:
+        partition-count: 1
+        replication-factor: 1
+        message-delay-ms: 10
+      dead-letter:
+        partition-count: 1
+        replication-factor: 1
+---
+spring:
+  profiles: kafka-retry-short-long-dlt-with-topic-prefix
+caas.kafka:
+  test: tdr-short-long-dlt-with-topic-prefix-${caas.random.uuid}
+  retryable-consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic
+      short-delay-retry:
+        topicPrefix: ${caas.kafka.test}-prefix-short
+        partition-count: 1
+        replication-factor: 1
+        message-delay-ms: 10
+      long-delay-retry:
+        topicPrefix: ${caas.kafka.test}-prefix-long
+        partition-count: 1
+        replication-factor: 1
+        message-delay-ms: 10
+      dead-letter:
+        topicPrefix: ${caas.kafka.test}-prefix-dead
+        partition-count: 1
+        replication-factor: 1
+---
+spring:
+  profiles: kafka-retry-short-dlt
+caas.kafka:
+  test: tdr-short-dlt-${caas.random.uuid}
+  retryable-consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic
+      short-delay-retry:
+        partition-count: 1
+        replication-factor: 1
+        message-delay-ms: 10
+      dead-letter:
+        partition-count: 1
+        replication-factor: 1
+---
+spring:
+  profiles: kafka-retry-long-dlt
+caas.kafka:
+  test: tdr-long-dlt-${caas.random.uuid}
+  retryable-consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic
+      long-delay-retry:
+        partition-count: 1
+        replication-factor: 1
+        message-delay-ms: 10
+      dead-letter:
+        partition-count: 1
+        replication-factor: 1
+---
+spring:
+  profiles: kafka-retry-short
+caas.kafka:
+  test: tdr-short-${caas.random.uuid}
+  retryable-consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic
+      short-delay-retry:
+        partition-count: 1
+        replication-factor: 1
+        message-delay-ms: 10
+---
+spring:
+  profiles: kafka-retry-long
+caas.kafka:
+  test: tdr-long-${caas.random.uuid}
+  retryable-consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic
+      long-delay-retry:
+        partition-count: 1
+        replication-factor: 1
+        message-delay-ms: 10
+---
+spring:
+  profiles: kafka-retry-dlt
+caas.kafka:
+  test: tdr-dlt-${caas.random.uuid}
+  retryable-consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic
+      dead-letter:
+        partition-count: 1
+        replication-factor: 1
+---
+spring:
+  profiles: kafka-retry-no-retries-topics-confgured
+caas.kafka:
+  test: tdr-no-retries-topics-configured-${caas.random.uuid}
+  retryable-consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic
+---
+spring:
+  profiles: kafka-retry-consumer-long-delay
+caas.kafka:
+  test: tdr-consumer-long-delay-${caas.random.uuid}
+  retryable-consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic
+      short-delay-retry:
+        partition-count: 1
+        replication-factor: 1
+        message-delay-ms: 1000
+      long-delay-retry:
+        partition-count: 1
+        replication-factor: 1
+        message-delay-ms: 2000
+      dead-letter:
+        partition-count: 1
+        replication-factor: 1
+---
+spring:
+  profiles: kafka-retry-short-long-dlt-with-stateless-retry-template
+caas.kafka:
+  listener:
+    retry:
+      enabled: true
+      max-attempts: 2
+---
+spring:
+  profiles: kafka-retry-short-long-dlt-with-stateless-retry-template-and-exceptions-map
+caas.kafka:
+  listener:
+    retry:
+      enabled: true
+      max-attempts: 2
+      traverse-exception-causes: true
+      retry-exception-default-value: true
+---
+# to be used along one of the default-kafka-container-* profiles, this is the common kafka config
+spring:
+  profiles: base-config-default-kafka-container
+  datasource:
+    url: jdbc:postgresql://localhost/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: localhost:9092
+    client-id: client-for-${caas.kafka.test}
+    producer:
+      client-id: producer-client-for-${caas.kafka.test}
+    consumer:
+      client-id: consumer-client-for-${caas.kafka.test}
+      group-id: consumer-group-for-${caas.kafka.test}
+      auto-offset-reset: earliest
+      max-poll-records: 50
+      properties:
+        isolation.level: read_committed
+    # override kafka.properties default with spring-kafka defaults
+    jaas.enabled: false
+    security.protocol: PLAINTEXT
+    properties:
+      sasl.mechanism: GSSAPI
+    ssl:
+      trust-store-location:
+      trust-store-password:
+caas.kafka:
+  vcap-service-name: dev-kafka
+  environment-name: dev
+  create-consumer-topics: true
+  listener:
+    retry:
+      enabled: true
+      max-attempts: 3
+---
+spring:
+  profiles: default-kafka-container-stateless-retry-error
+caas.kafka:
+  test: dkc-stateless-retry-error-${caas.random.uuid}
+  consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic
+---
+spring:
+  profiles: default-kafka-container-stateless-retry-success
+caas.kafka:
+  test: dkc-stateless-retry-success-${caas.random.uuid}
+  consumer:
+    test-consumer-topic:
+      partition-count: 1
+      replication-factor: 1
+      source: ${caas.kafka.test}-topic

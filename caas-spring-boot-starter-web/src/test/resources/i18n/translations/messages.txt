@@ -1,0 +1,2 @@
+general.labels.order.subtotal.skipped=Skipped Subtotal
+general.labels.order.tax.skipped=Dummy Taxes

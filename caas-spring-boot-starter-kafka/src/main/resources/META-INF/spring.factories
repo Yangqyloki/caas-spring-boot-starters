@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.hybris.caas.kafka.config.CaasKafkaConfig,\
+com.hybris.caas.kafka.config.CaasKafkaTransactionConfig
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.hybris.caas.kafka.config.CaasKafkaEnvPostProcessor

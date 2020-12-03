@@ -1,0 +1,645 @@
+openapi: 3.0.0
+info:
+  title: Service API Example
+  description: >
+    This is a service API @service.version@ example.
+  version: '@service.version@'
+  contact:
+    name: team Polar Bears
+servers:
+  - url: http://somewhere.com/my-service
+    description: Service URL
+  - url: http://somewhereelse.com/my-service
+    description: Second Service URL
+security:
+- bearerAuth: []
+tags:
+- name: Categories
+  description: Method available for the category resource.
+paths:
+  /categories:
+    get:
+      tags:
+      - Categories
+      summary: Retrieve a list of categories.
+      description: Retrieves a list of categories. The categories are sorted by name in ascending order. By default only categories active and published are returned. The expand query parameter is available to display two additional fields. The fields are the category parent ID (parentIds) and ancestor paths (paths).
+      parameters:
+      - $ref: '#/components/parameters/pageNumber'
+      - $ref: '#/components/parameters/categoryPageSize'
+      - $ref: '#/components/parameters/ids'
+      - $ref: '#/components/parameters/searchText'
+      - $ref: '#/components/parameters/expand'
+      responses:
+        200:
+          description: List of categories information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageableCategoryWithExpand'
+        400:
+          $ref: '#/components/responses/ErrorResponse400'
+        401:
+          $ref: '#/components/responses/ErrorResponse401'
+        '5XX':
+          $ref: '#/components/responses/ErrorResponse5XX'
+    post:
+      tags:
+      - Categories
+      summary: Create a category.
+      description: Creates a new category with an auto-generated ID. In this scenario, the reference ID is not populated.
+      requestBody:
+        $ref: '#/components/requestBodies/Category'
+      responses:
+        201:
+          $ref: '#/components/responses/Created'
+        400:
+          $ref: '#/components/responses/ErrorResponse400'
+        401:
+          $ref: '#/components/responses/ErrorResponse401'
+        403:
+          $ref: '#/components/responses/ErrorResponse403'
+        409:
+          $ref: '#/components/responses/ErrorResponse409'
+        '5XX':
+          $ref: '#/components/responses/ErrorResponse5XX'
+  /categories/{id}:
+    get:
+      tags:
+      - Categories
+      summary: Get a category by ID.
+      description: Retrieves a category using its respective ID. The expand query parameter is available to display two additional fields. The fields are the category parent ID (parentIds) and ancestor paths (paths).
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/expand'
+      responses:
+        200:
+          description: Category details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryWithExpand'
+        401:
+          $ref: '#/components/responses/ErrorResponse401'
+        404:
+          $ref: '#/components/responses/ErrorResponse404'
+        '5XX':
+          $ref: '#/components/responses/ErrorResponse5XX'
+    put:
+      tags:
+      - Categories
+      summary: Create or update a category.
+      description: Creates a new category or updates an existing category using the ID.
+      parameters:
+      - $ref: '#/components/parameters/id'
+      requestBody:
+        $ref: '#/components/requestBodies/Category'
+      responses:
+        201:
+          $ref: '#/components/responses/Created'
+        204:
+          description: Category updated.
+        400:
+          $ref: '#/components/responses/ErrorResponse400'
+        401:
+          $ref: '#/components/responses/ErrorResponse401'
+        403:
+          $ref: '#/components/responses/ErrorResponse403'
+        404:
+          $ref: '#/components/responses/ErrorResponse404'
+        '5XX':
+          $ref: '#/components/responses/ErrorResponse5XX'
+    patch:
+      tags:
+      - Categories
+      summary: Partial update of a category.
+      description: Update only specified attributes of the category. It applies a delta rather than replacing the entire resource. The JSON Merge Patch format is followed.
+      parameters:
+      - $ref: '#/components/parameters/id'
+      requestBody:
+        description: Category request payload.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/Category'
+      responses:
+        204:
+          description: Category updated.
+        400:
+          $ref: '#/components/responses/ErrorResponse400'
+        401:
+          $ref: '#/components/responses/ErrorResponse401'
+        403:
+          $ref: '#/components/responses/ErrorResponse403'
+        404:
+          $ref: '#/components/responses/ErrorResponse404'
+        '5XX':
+          $ref: '#/components/responses/ErrorResponse5XX'
+components:
+  schemas:
+    PageableCategoryWithExpand:
+      allOf:
+      - type: object
+        properties:
+          content:
+            type: array
+            items:
+              $ref: '#/components/schemas/CategoryWithExpand'
+      - $ref: '#/components/schemas/Pageable'
+    Category:
+      type: object
+      description: The editable category object.
+      required:
+      - name
+      properties:
+        id:
+          type: string
+          description: The category identifier.
+          readOnly: true
+          example: cat002
+        name:
+          description: The category's display name.
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: Running shoes
+        description:
+          description: The category's description.
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: Running shoes description.
+        published:
+          description: True if the category is published in the storefront, otherwise false.
+          type: boolean
+          default: false
+          example: true
+        active:
+          description: True by default, needs to be set to true to be displayed.
+          type: boolean
+          default: true
+          example: true
+        media:
+          description: The media image URL. There is a url validation applied on this field based on this implementation 'http://docs.oracle.com/javase/7/docs/api/java/net/URL.html', only http and https protocols are supported.
+          type: string
+          minLength: 1
+          maxLength: 2000
+          example: 'https://www.sap.com/dam/application/shared/logos/sap-logo.png'
+        referenceId:
+          type: string
+          description: The category external reference identifier.
+          readOnly: true
+          example: cat002
+        links:
+          type: array
+          description: An array of links for a given category.
+          items:
+            $ref: '#/components/schemas/Link'
+          readOnly: true
+          example:
+          - rel: self
+            href: 'http://localhost:8080/categories/cat002'
+    CategoryWithExpand:
+      allOf:
+      - $ref: '#/components/schemas/Category'
+      - type: object
+        properties:
+          availableProducts:
+            type: boolean
+            description: Only true if the category has active and published products. This information is not available when the category is displayed for a given selling tree.
+            default: true
+            readOnly: true
+            example: true
+          parentIds:
+            type: array
+            description: An array of the direct parent identifiers. Available only with expand query parameter.
+            items:
+              type: string
+            readOnly: true
+            example:
+            - cat001
+          paths:
+            type: array
+            description: List of path.
+            items:
+              type: string
+    Pageable:
+      type: object
+      properties:
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+          example:
+          - rel: self
+            href: 'http://localhost:8080/[resource]?pageNumber=2&pageSize=1'
+          - rel: next
+            href: 'http://localhost:8080/[resource]?pageNumber=3&pageSize=1'
+          - rel: prev
+            href: 'http://localhost:8080/[resource]?pageNumber=1&pageSize=1'
+        page:
+          type: object
+          description: This object provides information about the current page and the available results.
+          properties:
+            size:
+              type: number
+              description: The size of the page. Set to the value of pageSize parameter or its default value if not provided.
+              example: 1
+            totalElements:
+              type: number
+              description: The total number of available results.
+              example: 4
+            totalPages:
+              type: number
+              description: The total number of available pages based on the size of the page.
+              example: 4
+            number:
+              type: number
+              description: The number of the current page. Set to the value of pageNumber parameter or its default value if not provided.
+              example: 2
+    Link:
+      type: object
+      description: The links of where a resource is located.
+      properties:
+        rel:
+          type: string
+          description: The relationship identifier. Possible values are self (this resource), parent (the parent of the resource, where applicable), first (the first resource, where applicable), last (the last resource, where applicable), prev (the previous resource, where
+            applicable), next (the next resource, where applicable).
+          example: self
+        href:
+          type: string
+          description: The URL where the resource is located.
+          example: http://localhost:8080/[resource]/[id]
+    ErrorModel:
+      type: object
+      description: This represent the error model for all possible errors provided by the system.
+      properties:
+        status:
+          type: number
+          description: The HTTP status code applicable to this error.
+          readOnly: true
+          minimum: 100
+          maximum: 599
+        message:
+          type: string
+          description: The description of the error and, in some cases, a solution to the API consumer to resolve the issue.
+          readOnly: true
+        type:
+          type: string
+          description: The type of error message for further clarity.
+          pattern: "[a-z]+[a-z_]*[a-z]+"
+          readOnly: true
+          enum:
+            - bad_payload_syntax
+            - validation_violation
+            - business_error
+            - multipart_resolution_error
+            - insufficient_credentials
+            - insufficient_permissions
+            - element_resource_non_existing
+            - unsupported_method
+            - unsupported_response_content_type
+            - conflict_resource
+            - bad_payload_size
+            - uri_too_long
+            - unsupported_request_content_type
+            - internal_service_error
+            - backing_service_unavailable
+            - service_temporarily_unavailable
+            - gateway_timeout
+        moreInfo:
+          type: string
+          description: A link to external helpful documentation.
+          readOnly: true
+    ErrorDetailsModel:
+      type: object
+      description: The ErrorDetailsModel represents the model for an error returned by the system.
+      properties:
+        field:
+          type: string
+          description: The specific payload attribute or query parameter causing the error.
+          readOnly: true
+        type:
+          type: string
+          description: The type of error message for further clarity.
+          pattern: "[a-z]+[a-z_]*[a-z]+"
+          readOnly: true
+          enum:
+            - missing_field
+            - invalid_field
+            - missing_header
+            - invalid_header
+            - missing_query_parameter
+            - invalid_query_parameter
+            - invalid_uri_parameter
+            - out_of_range_parameter
+            - unique_index_violation
+        message:
+          type: string
+          description: The description of the error and, in some cases, a solution to the API consumer to resolve the issue.
+          readOnly: true
+        moreInfo:
+          type: string
+          description: A link to external helpful documentation.
+          readOnly: true
+    ErrorModel400:
+      description: "Bad request - The request failed due to one of the following reasons: 1) the payload format is incorrect; 2) the defined validation constraints are violated; or 3) the business rule is not respected. Do not repeat the call without modifying the request."
+      allOf:
+      - $ref: '#/components/schemas/ErrorModel'
+      - type: object
+        properties:
+          type:
+            type: string
+            description: The type of error message for further clarity.
+            pattern: "[a-z]+[a-z_]*[a-z]+"
+            readOnly: true
+            enum:
+              - bad_payload_syntax
+              - validation_violation
+              - business_error
+              - multipart_resolution_error
+          details:
+            type: array
+            description: An error can occur for multiple reasons, or it can be specified in more detail using a more precise error.
+            items:
+              $ref: '#/components/schemas/ErrorDetailsModel'
+      example:
+        status: 400
+        message: "Bad request - The request failed due to one of the following reasons: 1) the payload format is incorrect; 2) the defined validation constraints are violated; or 3) the business rule is not respected. Do not repeat the call without modifying the request."
+        details: [ {
+          field: <field_name>,
+          type: invalid_field,
+          message: may not be null,
+        } ]
+    ErrorModel401:
+      description: The request has not been applied because it lacks valid authentication credentials for the target resource.
+      allOf:
+        - $ref: '#/components/schemas/ErrorModel'
+        - type: object
+          properties:
+            type:
+              type: string
+              description: The type of error message for further clarity.
+              pattern: "[a-z]+[a-z_]*[a-z]+"
+              readOnly: true
+              enum:
+                - insufficient_credentials
+      example:
+        status: 401
+        message: Full authentication is required to access this resource
+        type: insufficient_credentials
+    ErrorModel403:
+      description: The server understood the request but refuses to authorize it based on the lack of required scopes.
+      allOf:
+        - $ref: '#/components/schemas/ErrorModel'
+        - type: object
+          properties:
+            type:
+              type: string
+              description: The type of error message for further clarity.
+              pattern: "[a-z]+[a-z_]*[a-z]+"
+              readOnly: true
+              enum:
+                - insufficient_permissions
+      example:
+        status: 403
+        message: Insufficient scope for this resource.
+        type: insufficient_permissions
+    ErrorModel404:
+      description: The server has not found anything matching the Request-URI.
+      allOf:
+        - $ref: '#/components/schemas/ErrorModel'
+        - type: object
+          properties:
+            type:
+              type: string
+              description: The type of error message for further clarity.
+              pattern: "[a-z]+[a-z_]*[a-z]+"
+              readOnly: true
+              enum:
+                - element_resource_non_existing
+      example:
+        status: 404
+        message: ID '7tbJKgi9th' is not found.
+        type: element_resource_non_existing
+    ErrorModel409:
+      description: The request could not be completed due to a conflict with the current state of the resource.
+      allOf:
+        - $ref: '#/components/schemas/ErrorModel'
+        - type: object
+          properties:
+            type:
+              type: string
+              description: The type of error message for further clarity.
+              pattern: "[a-z]+[a-z_]*[a-z]+"
+              readOnly: true
+              enum:
+                - conflict_resource
+            details:
+              type: array
+              description: An error can occur for multiple reasons, or it can be specified in more detail using a more precise error.
+              items:
+                $ref: '#/components/schemas/ErrorDetailsModel'
+      example:
+        status: 409
+        message: There is already a resource with the same unique identifier(s).
+        type: conflict_resource
+        details: [ {
+          field: <field_name>,
+          type: unique_index_violation,
+          message: must be unique,
+        } ]
+    ErrorModel5XX:
+      description: The server encountered an unexpected condition that prevented it from fulfilling the request.
+      allOf:
+        - $ref: '#/components/schemas/ErrorModel'
+        - type: object
+          properties:
+            type:
+              type: string
+              description: The type of error message for further clarity.
+              pattern: "[a-z]+[a-z_]*[a-z]+"
+              readOnly: true
+              enum:
+                - internal_server_error
+                - backing_service_unavailable
+                - service_temporarily_unavailable
+                - gateway_timeout
+      example:
+        status: 500
+        message: A server-side exception occurred that prevented the system from correctly returning the result.
+        type: internal_server_error
+  responses:
+    Created:
+      description: A new resource is created.
+      headers:
+        location:
+          description: A URI link to the created resource.
+          schema:
+            type: string
+        Warning:
+          description: Additional information that is not reflected in the status code.
+          schema:
+            type: string
+            example: 'Warning: 299 - "This resource is deprecated."'
+    Accepted:
+      description: The request is accepted.
+      headers:
+        Location:
+          description: A URI link to the task resource created.
+          schema:
+            type: string
+        Warning:
+          description: Additional information that is not reflected in the status code.
+          schema:
+            type: string
+            example: 'Warning: 299 - "This resource is expiring in 24 hours."'
+    ErrorResponse400:
+      description: "Bad request - The request failed due to one of the following reasons: 1) the payload format is incorrect; 2) the defined validation constraints are violated; or 3) the business rule is not respected. Do not repeat the call without modifying the request."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel400'
+    ErrorResponse401:
+      description: Unauthorized - The request requires user authentication.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel401'
+    ErrorResponse403:
+      description: Forbidden - The server understood the request but refuses to authorize it based on the lack of required scopes.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel403'
+    ErrorResponse404:
+      description: Not Found - The server has not found anything matching the Request-URI. No indication is given of whether the condition is temporary or permanent.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel404'
+    ErrorResponse409:
+      description: Conflict - The request could not be completed due to a conflict with the current state of the resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel409'
+    ErrorResponse5XX:
+      description: Internal Server Error - The server encountered an unexpected condition which prevented it from fulfilling the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel5XX'
+  parameters:
+    expand:
+      name: expand
+      description: A comma-separated list of additional field values to be embedded in the response. The fields are the parentIds and paths.
+      in: query
+      schema:
+        type: string
+    id:
+      name: id
+      description: Resource identifier.
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 255
+        pattern: '^[a-zA-Z0-9_\-\.\(\)~!\*''+ &]+$'
+    pageSize:
+      name: pageSize
+      description: The number of records to display on a single page.
+      in: query
+      required: false
+      schema:
+        type: number
+        minimum: 1
+        maximum: 50
+        default: 20
+    categoryPageSize:
+      name: pageSize
+      description: The number of records to display on a single category page.
+      in: query
+      required: false
+      schema:
+        type: number
+        minimum: 1
+        maximum: 200
+        default: 20
+    pageNumber:
+      name: pageNumber
+      description: The page number determines the displayed list of records that is defined by the pageSize query parameter. The first page is always 1.
+      in: query
+      required: false
+      schema:
+        type: number
+        minimum: 1
+        default: 1
+    categoryId:
+      name: categoryId
+      description: Retrieves all the resources for a given category ID.
+      in: query
+      required: false
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 255
+    productId:
+      name: productId
+      description: Retrieves all resources for a given product ID.
+      in: query
+      required: true
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 255
+    ids:
+      name: ids
+      description: A comma-separated list of resource identifiers. There is a maximum of 20 IDs per list.
+      in: query
+      required: false
+      schema:
+        type: string
+        maxItems: 20
+    categoryIds:
+      name: categoryIds
+      description: Retrieves all the products for a given list of categories separated by commas, the maximum list size is 20.
+      in: query
+      required: false
+      schema:
+        type: string
+        maxItems: 20
+    parentIds:
+      name: parentIds
+      description: Retrieves all of the direct child categories for a comma-separated list of parent category IDs. You can provide a maximum of 20 parent category IDs in a single call.
+      in: query
+      required: false
+      schema:
+        type: string
+        maxItems: 20
+    searchText:
+      name: searchText
+      description: Retrieves all resources matching the requested search text. A match is case insensitive and can be found at the beginning, middle or end of the text.
+      in: query
+      required: false
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 255
+  requestBodies:
+    Category:
+      description: Category request payload.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Category'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: TOKEN

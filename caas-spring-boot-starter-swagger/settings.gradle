@@ -1,0 +1,4 @@
+rootProject.name = 'caas-spring-boot-starter-swagger'
+
+// composite build, uncomment to build both gradle projects as single one (change path if required)
+//includeBuild '../caas-spring-boot-starter-security'

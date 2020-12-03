@@ -1,0 +1,26 @@
+VCAP_SERVICES: >
+  {
+     "xsuaa": [{
+        "name": "some-uaa",
+        "instance_name": "some-uaa",
+        "binding_name": null,
+        "credentials": {
+           "uaadomain": "authentication.sap.hana.ondemand.com",
+           "tenantmode": "dedicated",
+           "sburl": "https://internal-xsuaa.authentication.sap.hana.ondemand.com",
+           "clientid": "caas!t1",
+           "verificationkey": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtN0NaCgvp/5BNxwQD0yOlbyaHHxG/uYQPvFB+R6PTLImKk0ugYmS6+DY+zHi3o2223gz4QI6Z4EsLElvGKHxlmKuOHzMp+SYs2ZsPVzWz30MJGVs3yjc3rCxv/veZKPxY+6pLpjfS9HaC5ZXiLwRHMg1CKhilRnIsmbSggwNLvJPBsOeUz6mPxn2sLQQZ5XM59dCQCVSr774Rg/SQSRH32y16hDDZv6PxRlT4Y3O0UtkbDZkpjru2+3sSDxa0o7kyWPU/A+pHxpIo/W36yET+e5LAyYTNQuUe3SUbhFnl9V+ID43cND+edKXSHEvmx9iWVn6yZDFFpIxWJAU6g775wIDAQAB-----END PUBLIC KEY-----",
+           "xsappname": "caas!t1",
+           "identityzone": "caas",
+           "identityzoneid": "caas",
+           "clientsecret": "GB/xrtWxRlIxZrnO36wNdPX/TZk=",
+           "url": "https://authentication.sap.hana.ondemand.com"
+        },
+        "syslog_drain_url": null,
+        "volume_mounts": [],
+        "label": "xsuaa",
+        "provider": null,
+        "plan": "application",
+        "tags": ["xsuaa"]
+     }]
+  }

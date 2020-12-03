@@ -1,0 +1,25 @@
+dependencies {
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    api "com.sap.hcp.cf.logging:cf-java-logging-support-logback:${loggingVersion}"
+    api "com.sap.cp.auditlog:audit-java-client-api:${auditlogVersion}"
+    api("com.sap.cp.auditlog:audit-java-client-impl:${auditlogVersion}") {
+        exclude group: 'com.sap.xs2.security', module: 'java-container-security-api'
+    }
+
+    api "com.sap.cloud.sjb:xs-env:${xsEnvVersion}"
+    api "com.flipkart.zjsonpatch:zjsonpatch:${zJsonPatchVersion}"
+    compileOnly 'org.eclipse.persistence:org.eclipse.persistence.jpa'
+    compileOnly('org.springframework.boot:spring-boot-starter-data-jpa') {
+        exclude group: 'org.hibernate', module: 'hibernate-entitymanager'
+    }
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'com.vaadin.external.google', module: 'android-json'
+    }
+    testImplementation 'org.springframework.boot:spring-boot-autoconfigure'
+    testImplementation 'org.springframework.data:spring-data-jpa'
+    testImplementation 'org.springframework.boot:spring-boot-starter-amqp'
+    testImplementation 'org.postgresql:postgresql'
+    testImplementation 'org.glassfish.jaxb:jaxb-runtime'
+}

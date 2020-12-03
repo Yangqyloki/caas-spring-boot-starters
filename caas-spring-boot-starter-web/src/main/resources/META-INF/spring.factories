@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.hybris.caas.web.config.WebConfig,\
+  com.hybris.caas.web.config.I18nConfig

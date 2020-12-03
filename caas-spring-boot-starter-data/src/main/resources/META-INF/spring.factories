@@ -1,0 +1,7 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+    com.hybris.caas.data.config.JpaQuerydslConfig,\
+    com.hybris.caas.data.config.AesEncryptionConfig,\
+    com.hybris.caas.data.config.JpaAuditConfig,\
+    com.hybris.caas.data.config.EclipseLinkJpaConfig
+org.springframework.boot.env.EnvironmentPostProcessor=\
+    com.hybris.caas.data.config.AwsCertificateBundlePostProcessor

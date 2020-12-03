@@ -1,0 +1,30 @@
+dependencies {
+	api 'org.springframework.boot:spring-boot-starter-web'
+	api 'org.springframework.security:spring-security-jwt'
+	compileOnly("com.sap.cloud.security.xsuaa:xsuaa-spring-boot-starter:${sapCloudSecurityVersion}") {
+		exclude group: 'org.codehaus.jackson', module: 'jackson-mapper-asl'
+	}
+
+	api('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'com.vaadin.external.google', module: 'android-json'
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+	api 'io.rest-assured:rest-assured'
+	api('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml') {
+		exclude group: 'com.vaadin.external.google', module: 'android-json'
+	}
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
+	testImplementation('org.springframework.boot:spring-boot-starter-data-jpa') {
+		exclude group: 'org.hibernate', module: 'hibernate-entitymanager'
+	}
+	testImplementation 'org.springframework.boot:spring-boot-starter-amqp'
+	testImplementation 'org.springframework.boot:spring-boot-autoconfigure'
+	testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner:${springCloudContractVersion}") {
+		exclude group: 'com.vaadin.external.google', module: 'android-json'
+	}
+
+	testImplementation 'org.eclipse.persistence:org.eclipse.persistence.jpa'
+	testImplementation 'org.postgresql:postgresql'
+	testImplementation 'org.glassfish.jaxb:jaxb-runtime'
+}

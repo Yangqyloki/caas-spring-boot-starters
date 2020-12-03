@@ -1,0 +1,62 @@
+// Security Compliance
+// Tasks and configurations for fortify, vulas and whitesource
+// gradle --init-script sec-compliance.gradle copyDependencies
+// gradle --init-script sec-compliance.gradle vulasApp vulasReport vulasClean -Pvulas.core.space.token=${VULAS_TOKEN}
+// gradle --init-script sec-compliance.gradle updateWhitesource -PwhitesourceOrgToken=${WHITESOURCE_ORG_TOKEN} -PwhitesourceUserToken=${WHITESOURCE_USER_TOKEN}
+
+initscript {
+	ext {
+		vulasVersion = '3.1.6'
+		whitesourceVersion = '18.10.3'
+	}
+
+	repositories {
+		maven {
+			url 'https://nexus.wdf.sap.corp:8443/nexus/content/repositories/build.snapshots'
+		}
+		maven {
+			url 'https://nexus.wdf.sap.corp:8443/nexus/content/repositories/build.releases'
+		}
+	}
+
+	dependencies {
+		classpath "com.sap.research.security.vulas:plugin-gradle:${vulasVersion}"
+		classpath "org.whitesource:whitesource-gradle-plugin:${whitesourceVersion}"
+	}
+}
+
+allprojects {
+	apply plugin: com.sap.vulas.gradle.VulasPlugin
+}
+
+rootProject {
+	apply plugin: org.whitesource.gradle.WhitesourcePlugin
+
+	beforeEvaluate {
+		whitesource {
+			orgToken project.properties['whitesourceOrgToken'] ?: ''
+			userToken project.properties['whitesourceUserToken'] ?: ''
+			productName 'SHC - COMMERCE AS A SERVICE 2.0'
+			checkPolicies = true
+			failOnError = true
+			includeProjects subprojects - project(':caas-spring-boot-starter-dependencies')
+		}
+	}
+
+	afterEvaluate {
+		rootProject.subprojects {
+
+			if(project.getPluginManager().hasPlugin('java')) {
+				// Used to scan all dependencies from Fortify
+				// assumes all sub projects have the java plugin (so configurations compile and compileOnly is available)
+				task copyDependencies(type: Copy) {
+					from configurations.compileClasspath
+					into "${rootDir}/build/dependencies"
+					includeEmptyDirs false
+					include '**/*.jar'
+					exclude '**/caas-spring-boot-starter-*.jar'
+				}
+			}
+		}
+	}
+}
